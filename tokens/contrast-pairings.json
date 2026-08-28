@@ -1,0 +1,6 @@
+[
+  { "fg": "fg.default", "bg": "canvas.default", "minRatio": 4.5 },
+  { "fg": "fg.muted", "bg": "canvas.default", "minRatio": 4.5 },
+  { "fg": "accent.fg", "bg": "canvas.default", "minRatio": 4.5 },
+  { "fg": "fg.onEmphasis", "bg": "accent.emphasis", "minRatio": 4.5 }
+]

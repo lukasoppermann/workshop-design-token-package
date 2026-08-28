@@ -1,0 +1,11 @@
+:root[data-theme='dark'] {
+  --color-accent-emphasis: #0969da;
+  --color-accent-fg: #54aeff;
+  --color-border-default: #424a53;
+  --color-border-muted: #32383f;
+  --color-canvas-default: #1a1f24;
+  --color-canvas-subtle: #24292f;
+  --color-fg-default: #eaeef2;
+  --color-fg-muted: #afb8c1;
+  --color-fg-onEmphasis: #ffffff;
+}

@@ -1,0 +1,19 @@
+{
+  "fg": {
+    "default": { "$type": "color", "$value": "{gray.100}" },
+    "muted": { "$type": "color", "$value": "{gray.300}" },
+    "onEmphasis": { "$type": "color", "$value": "{gray.0}" }
+  },
+  "canvas": {
+    "default": { "$type": "color", "$value": "{gray.950}" },
+    "subtle": { "$type": "color", "$value": "{gray.900}" }
+  },
+  "border": {
+    "default": { "$type": "color", "$value": "{gray.700}" },
+    "muted": { "$type": "color", "$value": "{gray.800}" }
+  },
+  "accent": {
+    "fg": { "$type": "color", "$value": "{blue.400}" },
+    "emphasis": { "$type": "color", "$value": "{blue.600}" }
+  }
+}
