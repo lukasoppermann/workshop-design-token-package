@@ -7,6 +7,11 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node scripts/build-tokens.mjs",
+    "pretest": "npm run build",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.11"
   }
 }

@@ -60,7 +60,7 @@ describe('getTokenSet', () => {
       source: {
         version: '1.0.0',
         tokens: 'dist/tokens/resolved.json',
-        approvals: 'mcp/approved-pairings.json',
+        approvals: 'tokens/contrast-pairings.json',
       },
     });
   });
@@ -78,6 +78,13 @@ describe('validateTokenPairing', () => {
     expect(result.approved).toBe(true);
     expect(result.contrastRatio).toBeGreaterThanOrEqual(result.minimumRequired);
     expect(result.reason).toContain('approved semantic pairing');
+  });
+
+  it('uses the minimum ratio defined by the shared contrast pairing', () => {
+    const result = validateTokenPairing('accent.border', 'canvas.default', 'light');
+
+    expect(result.approved).toBe(true);
+    expect(result.minimumRequired).toBe(3);
   });
 
   it('rejects a readable but unapproved semantic pairing', () => {
