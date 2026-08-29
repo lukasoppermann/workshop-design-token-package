@@ -1,0 +1,6 @@
+{
+  "interactive-link": {
+    "foreground": "accent.fg",
+    "background": "canvas.default"
+  }
+}

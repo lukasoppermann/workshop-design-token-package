@@ -9,7 +9,8 @@ import { contrastRatio } from '../scripts/contrast.mjs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const resolvedPath = path.join(rootDir, 'dist', 'tokens', 'resolved.json');
-const approvedPairingsPath = path.join(__dirname, 'approved-pairings.json');
+const pairingsPath = path.join(rootDir, 'tokens', 'contrast-pairings.json');
+const tokenSetsPath = path.join(__dirname, 'token-sets.json');
 const packagePath = path.join(rootDir, 'package.json');
 
 const DEFAULT_MIN_RATIO = 4.5;
@@ -22,7 +23,7 @@ function getSource() {
   return {
     version: readPackage().version,
     tokens: 'dist/tokens/resolved.json',
-    approvals: 'mcp/approved-pairings.json',
+    approvals: 'tokens/contrast-pairings.json',
   };
 }
 
@@ -37,7 +38,11 @@ function readResolvedTokens() {
 }
 
 function readApprovedPairings() {
-  return JSON.parse(fs.readFileSync(approvedPairingsPath, 'utf8'));
+  return JSON.parse(fs.readFileSync(pairingsPath, 'utf8'));
+}
+
+function readTokenSets() {
+  return JSON.parse(fs.readFileSync(tokenSetsPath, 'utf8'));
 }
 
 /**
@@ -65,7 +70,7 @@ export function getPublishedTokens(theme) {
  * @param {"light"|"dark"} theme
  * @param {number} [minRatio]
  */
-export function validatePairing(fg, bg, theme, minRatio = DEFAULT_MIN_RATIO) {
+export function validatePairing(fg, bg, theme, minRatio) {
   const { tokens } = getPublishedTokens(theme);
   const fgHex = tokens[fg];
   const bgHex = tokens[bg];
@@ -73,8 +78,8 @@ export function validatePairing(fg, bg, theme, minRatio = DEFAULT_MIN_RATIO) {
   if (!bgHex) throw new Error(`Unknown token "${bg}" (theme: ${theme})`);
 
   const ratio = contrastRatio(fgHex, bgHex);
-  const { pairings } = readApprovedPairings();
-  const isApproved = pairings.some((p) => p.fg === fg && p.bg === bg);
+  const pairing = readApprovedPairings().find((candidate) => candidate.fg === fg && candidate.bg === bg);
+  const requiredRatio = minRatio ?? pairing?.minRatio ?? DEFAULT_MIN_RATIO;
 
   return {
     fg,
@@ -82,12 +87,12 @@ export function validatePairing(fg, bg, theme, minRatio = DEFAULT_MIN_RATIO) {
     theme,
     contrast: {
       ratio,
-      minRatio,
-      pass: ratio >= minRatio,
+      minRatio: requiredRatio,
+      pass: ratio >= requiredRatio,
     },
     semantic: {
-      pass: isApproved,
-      reason: isApproved
+      pass: Boolean(pairing),
+      reason: pairing
         ? `"${fg}" on "${bg}" is an approved semantic pairing`
         : `"${fg}" on "${bg}" is not an approved semantic pairing`,
     },
@@ -103,7 +108,8 @@ export function validatePairing(fg, bg, theme, minRatio = DEFAULT_MIN_RATIO) {
  */
 export function getTokenSet(role, theme) {
   const { tokens } = getPublishedTokens(theme);
-  const { tokenSets, pairings } = readApprovedPairings();
+  const tokenSets = readTokenSets();
+  const pairings = readApprovedPairings();
   const tokenSet = tokenSets[role];
 
   if (!tokenSet) {
