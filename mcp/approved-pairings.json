@@ -1,0 +1,18 @@
+{
+  "_comment": "Approved semantic fg/bg role combinations. A pairing not listed here is NOT an approved combination, even if it happens to pass contrast.",
+  "tokenSets": {
+    "interactive-link": {
+      "foreground": "accent.fg",
+      "background": "canvas.default"
+    }
+  },
+  "pairings": [
+    { "fg": "fg.default", "bg": "canvas.default" },
+    { "fg": "fg.muted", "bg": "canvas.default" },
+    { "fg": "accent.fg", "bg": "canvas.default" },
+    { "fg": "fg.onEmphasis", "bg": "accent.emphasis" },
+    { "fg": "success.fg", "bg": "success.bg" },
+    { "fg": "attention.fg", "bg": "attention.bg" },
+    { "fg": "danger.fg", "bg": "danger.bg" }
+  ]
+}

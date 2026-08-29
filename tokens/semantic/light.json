@@ -13,7 +13,35 @@
     "muted": { "$type": "color", "$value": "{gray.100}" }
   },
   "accent": {
-    "fg": { "$type": "color", "$value": "{blue.600}" },
-    "emphasis": { "$type": "color", "$value": "{blue.600}" }
+    "fg": { "$type": "color", "$value": "{blue.700}" },
+    "border": { "$type": "color", "$value": "{blue.600}" },
+    "bg": {
+      "emphasis": { "$type": "color", "$value": "{blue.600}" },
+      "muted": { "$type": "color", "$value": "{blue.100}" }
+    }
+  },
+  "success": {
+    "fg": { "$type": "color", "$value": "{green.700}" },
+    "border": { "$type": "color", "$value": "{green.600}" },
+    "bg": {
+      "emphasis": { "$type": "color", "$value": "{green.600}" },
+      "muted": { "$type": "color", "$value": "{green.100}" }
+    }
+  },
+  "danger": {
+    "fg": { "$type": "color", "$value": "{red.700}" },
+    "border": { "$type": "color", "$value": "{red.600}" },
+    "bg": {
+      "emphasis": { "$type": "color", "$value": "{red.600}" },
+      "muted": { "$type": "color", "$value": "{red.100}" }
+    }
+  },
+  "attention": {
+    "fg": { "$type": "color", "$value": "{yellow.700}" },
+    "border": { "$type": "color", "$value": "{yellow.600}" },
+    "bg": {
+      "emphasis": { "$type": "color", "$value": "{yellow.600}" },
+      "muted": { "$type": "color", "$value": "{yellow.100}" }
+    }
   }
 }
