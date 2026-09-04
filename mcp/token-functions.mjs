@@ -98,7 +98,6 @@ export function validatePairing(fg, bg, theme, minRatio) {
   const approvedPairing = readContrastPairings().find((pairing) => pairing.fg === fg && pairing.bg === bg);
   const requiredRatio = minRatio ?? approvedPairing?.minRatio ?? DEFAULT_MIN_RATIO;
   const ratio = contrastRatio(fgHex, bgHex);
-  const isApproved = Boolean(approvedPairing);
 
   return {
     fg,
@@ -110,8 +109,8 @@ export function validatePairing(fg, bg, theme, minRatio) {
       pass: ratio >= requiredRatio,
     },
     semantic: {
-      pass: isApproved,
-      reason: isApproved
+      pass: Boolean(approvedPairing),
+      reason: approvedPairing
         ? `"${fg}" on "${bg}" is an approved semantic pairing`
         : `"${fg}" on "${bg}" is not an approved semantic pairing`,
     },

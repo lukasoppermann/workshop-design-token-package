@@ -94,6 +94,13 @@ describe('validateTokenPairing', () => {
     expect(result.reason).toContain('approved semantic pairing');
   });
 
+  it('uses the minimum ratio defined by the shared contrast pairing', () => {
+    const result = validateTokenPairing('accent.border', 'canvas.default', 'light');
+
+    expect(result.approved).toBe(true);
+    expect(result.minimumRequired).toBe(3);
+  });
+
   it('rejects a readable but unapproved semantic pairing', () => {
     const result = validateTokenPairing('fg.default', 'canvas.subtle', 'dark');
 
