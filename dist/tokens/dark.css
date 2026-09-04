@@ -1,11 +1,25 @@
 :root[data-theme='dark'] {
-  --color-accent-emphasis: #0969da;
-  --color-accent-fg: #54aeff;
+  --color-accent-bg-emphasis: #0969da;
+  --color-accent-bg-muted: #0a3069;
+  --color-accent-border: #218bff;
+  --color-accent-fg: #80ccff;
+  --color-attention-bg-emphasis: #9a6700;
+  --color-attention-bg-muted: #4d2d00;
+  --color-attention-border: #bf8700;
+  --color-attention-fg: #eac54f;
   --color-border-default: #424a53;
   --color-border-muted: #32383f;
   --color-canvas-default: #1a1f24;
   --color-canvas-subtle: #24292f;
+  --color-danger-bg-emphasis: #cf222e;
+  --color-danger-bg-muted: #660018;
+  --color-danger-border: #fa4549;
+  --color-danger-fg: #ffaba8;
   --color-fg-default: #eaeef2;
   --color-fg-muted: #afb8c1;
   --color-fg-onEmphasis: #ffffff;
+  --color-success-bg-emphasis: #1a7f37;
+  --color-success-bg-muted: #003d16;
+  --color-success-border: #2da44e;
+  --color-success-fg: #6fdd8b;
 }

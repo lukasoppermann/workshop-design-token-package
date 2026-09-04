@@ -4,19 +4,22 @@
 // stdio transport is just newline-delimited JSON-RPC 2.0 messages, and this
 // workshop only needs two read-only, local, deterministic tools.
 import readline from 'node:readline';
-import { getTokenSet, validateTokenPairing } from './token-functions.mjs';
+import { getTokens, validateTokenPairing } from './token-functions.mjs';
 
 const TOOLS = [
   {
-    name: 'get_token_set',
-    description: 'Returns the current approved semantic token set for a UI role and theme.',
+    name: 'get_tokens',
+    description:
+      'Finds a token and related tokens by exact token path or semantic role. Intent terms are supported, for example "saved" finds success tokens.',
     inputSchema: {
       type: 'object',
       properties: {
+        token: { type: 'string', description: 'An exact or partial token path, such as success.fg' },
         role: { type: 'string' },
         theme: { type: 'string', enum: ['light', 'dark'] },
       },
-      required: ['role', 'theme'],
+      required: ['theme'],
+      anyOf: [{ required: ['token'] }, { required: ['role'] }],
     },
   },
   {
@@ -37,8 +40,8 @@ const TOOLS = [
 
 function callTool(name, args) {
   switch (name) {
-    case 'get_token_set':
-      return getTokenSet(args.role, args.theme);
+    case 'get_tokens':
+      return getTokens(args.token, args.role, args.theme);
     case 'validate_token_pairing':
       return validateTokenPairing(args.foreground, args.background, args.theme);
     default:

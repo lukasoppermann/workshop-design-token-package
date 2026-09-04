@@ -10,7 +10,7 @@ describe('MCP adapter request handling (in-process)', () => {
   it('lists the two workshop tools with their required inputs', () => {
     const response = handleRequest({ jsonrpc: '2.0', id: 2, method: 'tools/list' });
     expect(response.result.tools).toMatchObject([
-      { name: 'get_token_set', inputSchema: { required: ['role', 'theme'] } },
+      { name: 'get_tokens', inputSchema: { required: ['theme'] } },
       {
         name: 'validate_token_pairing',
         inputSchema: { required: ['foreground', 'background', 'theme'] },
@@ -18,31 +18,31 @@ describe('MCP adapter request handling (in-process)', () => {
     ]);
   });
 
-  it('calls get_token_set via tools/call', () => {
+  it('calls get_tokens via tools/call', () => {
     const response = handleRequest({
       jsonrpc: '2.0',
       id: 3,
       method: 'tools/call',
       params: {
-        name: 'get_token_set',
-        arguments: { role: 'interactive-link', theme: 'dark' },
+        name: 'get_tokens',
+        arguments: { role: 'saved', theme: 'dark' },
       },
     });
     const payload = JSON.parse(response.result.content[0].text);
     expect(payload.theme).toBe('dark');
-    expect(payload.foreground).toBe('accent.fg');
-    expect(payload.background).toBe('canvas.default');
+    expect(payload.matchedRole).toBe('success');
+    expect(payload.tokens).toContainEqual({ name: 'success.fg', value: '#6fdd8b' });
   });
 
-  it('returns a clear tool error for an unsupported token-set role', () => {
+  it('returns a clear tool error for an unknown token search', () => {
     const response = handleRequest({
       jsonrpc: '2.0',
       id: 4,
       method: 'tools/call',
-      params: { name: 'get_token_set', arguments: { role: 'button', theme: 'dark' } },
+      params: { name: 'get_tokens', arguments: { role: 'button', theme: 'dark' } },
     });
 
-    expect(response.error.message).toMatch(/Unsupported role "button"/);
+    expect(response.error.message).toMatch(/No tokens found for "button"/);
   });
 
   it('calls validate_token_pairing via tools/call and surfaces the semantic failure', () => {

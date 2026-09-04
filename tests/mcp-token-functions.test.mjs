@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   getPublishedTokens,
   validatePairing,
-  getTokenSet,
+  getTokens,
   validateTokenPairing,
 } from '../mcp/token-functions.mjs';
 
@@ -50,24 +50,38 @@ describe('validatePairing', () => {
   });
 });
 
-describe('getTokenSet', () => {
-  it('returns the approved interactive link tokens from the fixture data', () => {
-    expect(getTokenSet('interactive-link', 'dark')).toMatchObject({
-      role: 'interactive-link',
+describe('getTokens', () => {
+  it('returns an exact token and related tokens from its role', () => {
+    const result = getTokens('accent.fg', undefined, 'dark');
+    expect(result).toMatchObject({
       theme: 'dark',
-      foreground: 'accent.fg',
-      background: 'canvas.default',
+      matchedRole: 'accent',
       source: {
         version: '1.0.0',
         tokens: 'dist/tokens/resolved.json',
-        approvals: 'mcp/approved-pairings.json',
+        approvals: 'tokens/contrast-pairings.json',
       },
     });
+    expect(result.tokens[0]).toEqual({ name: 'accent.fg', value: '#80ccff' });
+    expect(result.tokens).toContainEqual({ name: 'accent.bg.muted', value: '#0a3069' });
+    expect(result.relatedPairings.length).toBeGreaterThan(0);
   });
 
-  it('rejects an unsupported role and invalid theme clearly', () => {
-    expect(() => getTokenSet('button', 'dark')).toThrow(/Unsupported role "button"/);
-    expect(() => getTokenSet('interactive-link', 'sepia')).toThrow(/Unknown theme "sepia"/);
+  it('maps intent words to semantic token roles', () => {
+    const result = getTokens(undefined, 'saved', 'light');
+    expect(result.matchedRole).toBe('success');
+    expect(result.tokens.map(({ name }) => name)).toEqual([
+      'success.bg.emphasis',
+      'success.bg.muted',
+      'success.border',
+      'success.fg',
+    ]);
+  });
+
+  it('rejects an unknown search, missing search, and invalid theme clearly', () => {
+    expect(() => getTokens(undefined, 'button', 'dark')).toThrow(/No tokens found for "button"/);
+    expect(() => getTokens(undefined, undefined, 'dark')).toThrow(/Provide a token or role/);
+    expect(() => getTokens(undefined, 'success', 'sepia')).toThrow(/Unknown theme "sepia"/);
   });
 });
 

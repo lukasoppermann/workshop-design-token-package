@@ -48,12 +48,12 @@ describe('MCP adapter over real stdio', () => {
       id: 2,
       method: 'tools/call',
       params: {
-        name: 'get_token_set',
-        arguments: { role: 'interactive-link', theme: 'light' },
+        name: 'get_tokens',
+        arguments: { token: 'accent.fg', theme: 'light' },
       },
     });
     const payload = JSON.parse(response.result.content[0].text);
     expect(payload.theme).toBe('light');
-    expect(payload.foreground).toBe('accent.fg');
+    expect(payload.tokens[0]).toEqual({ name: 'accent.fg', value: '#0550ae' });
   });
 });

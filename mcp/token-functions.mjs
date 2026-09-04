@@ -9,10 +9,19 @@ import { contrastRatio } from '../scripts/contrast.mjs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const resolvedPath = path.join(rootDir, 'dist', 'tokens', 'resolved.json');
-const approvedPairingsPath = path.join(__dirname, 'approved-pairings.json');
+const contrastPairingsPath = path.join(rootDir, 'tokens', 'contrast-pairings.json');
 const packagePath = path.join(rootDir, 'package.json');
 
 const DEFAULT_MIN_RATIO = 4.5;
+const ROLE_ALIASES = {
+  accent: ['accent', 'interactive', 'link', 'primary'],
+  attention: ['attention', 'caution', 'notice', 'warning'],
+  border: ['border', 'divider', 'outline'],
+  canvas: ['background', 'canvas', 'surface'],
+  danger: ['danger', 'destructive', 'error', 'failed', 'failure'],
+  fg: ['content', 'foreground', 'text'],
+  success: ['complete', 'completed', 'positive', 'saved', 'success', 'successful'],
+};
 
 function readPackage() {
   return JSON.parse(fs.readFileSync(packagePath, 'utf8'));
@@ -22,7 +31,7 @@ function getSource() {
   return {
     version: readPackage().version,
     tokens: 'dist/tokens/resolved.json',
-    approvals: 'mcp/approved-pairings.json',
+    approvals: 'tokens/contrast-pairings.json',
   };
 }
 
@@ -36,8 +45,22 @@ function readResolvedTokens() {
   return JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
 }
 
-function readApprovedPairings() {
-  return JSON.parse(fs.readFileSync(approvedPairingsPath, 'utf8'));
+function readContrastPairings() {
+  return JSON.parse(fs.readFileSync(contrastPairingsPath, 'utf8'));
+}
+
+function normalizeSearchTerm(value) {
+  return value?.trim().toLowerCase().replaceAll('_', '-');
+}
+
+function findRole(value, availableRoles) {
+  const term = normalizeSearchTerm(value);
+  if (!term) return null;
+  if (availableRoles.includes(term)) return term;
+
+  return Object.entries(ROLE_ALIASES).find(
+    ([role, aliases]) => availableRoles.includes(role) && aliases.includes(term)
+  )?.[0] ?? null;
 }
 
 /**
@@ -65,16 +88,17 @@ export function getPublishedTokens(theme) {
  * @param {"light"|"dark"} theme
  * @param {number} [minRatio]
  */
-export function validatePairing(fg, bg, theme, minRatio = DEFAULT_MIN_RATIO) {
+export function validatePairing(fg, bg, theme, minRatio) {
   const { tokens } = getPublishedTokens(theme);
   const fgHex = tokens[fg];
   const bgHex = tokens[bg];
   if (!fgHex) throw new Error(`Unknown token "${fg}" (theme: ${theme})`);
   if (!bgHex) throw new Error(`Unknown token "${bg}" (theme: ${theme})`);
 
+  const approvedPairing = readContrastPairings().find((pairing) => pairing.fg === fg && pairing.bg === bg);
+  const requiredRatio = minRatio ?? approvedPairing?.minRatio ?? DEFAULT_MIN_RATIO;
   const ratio = contrastRatio(fgHex, bgHex);
-  const { pairings } = readApprovedPairings();
-  const isApproved = pairings.some((p) => p.fg === fg && p.bg === bg);
+  const isApproved = Boolean(approvedPairing);
 
   return {
     fg,
@@ -82,8 +106,8 @@ export function validatePairing(fg, bg, theme, minRatio = DEFAULT_MIN_RATIO) {
     theme,
     contrast: {
       ratio,
-      minRatio,
-      pass: ratio >= minRatio,
+      minRatio: requiredRatio,
+      pass: ratio >= requiredRatio,
     },
     semantic: {
       pass: isApproved,
@@ -95,35 +119,58 @@ export function validatePairing(fg, bg, theme, minRatio = DEFAULT_MIN_RATIO) {
 }
 
 /**
- * Returns the approved semantic token set for a UI role. Role definitions are
- * data, not application logic, and each set must point to an approved pairing.
+ * Finds an exact token or all tokens related to a semantic role or intent.
+ * Common UI terms are mapped to token families, such as "saved" to "success".
  *
- * @param {string} role
+ * @param {string|undefined} token
+ * @param {string|undefined} role
  * @param {"light"|"dark"} theme
  */
-export function getTokenSet(role, theme) {
+export function getTokens(token, role, theme) {
   const { tokens } = getPublishedTokens(theme);
-  const { tokenSets, pairings } = readApprovedPairings();
-  const tokenSet = tokenSets[role];
+  const pairings = readContrastPairings();
+  const availableRoles = [...new Set(Object.keys(tokens).map((name) => name.split('.')[0]))];
+  const exactToken = token && tokens[token] ? token : null;
+  const matchedRole = findRole(role ?? token?.split('.')[0], availableRoles);
+  const tokenQuery = normalizeSearchTerm(token);
 
-  if (!tokenSet) {
-    throw new Error(`Unsupported role "${role}". Expected one of: ${Object.keys(tokenSets).join(', ')}`);
+  if (!tokenQuery && !normalizeSearchTerm(role)) {
+    throw new Error('Provide a token or role to search for');
   }
-  if (!tokens[tokenSet.foreground]) {
-    throw new Error(`Role "${role}" references unknown token "${tokenSet.foreground}" (theme: ${theme})`);
+
+  const matches = Object.entries(tokens)
+    .filter(([name]) =>
+      name === exactToken ||
+      (matchedRole && (name === matchedRole || name.startsWith(`${matchedRole}.`))) ||
+      (!matchedRole && tokenQuery && name.toLowerCase().includes(tokenQuery))
+    )
+    .sort(([left], [right]) => {
+      if (left === exactToken) return -1;
+      if (right === exactToken) return 1;
+      return left.localeCompare(right);
+    })
+    .map(([name, value]) => ({ name, value }));
+
+  if (matches.length === 0) {
+    const search = role ?? token;
+    throw new Error(`No tokens found for "${search}". Available roles: ${availableRoles.join(', ')}`);
   }
-  if (!tokens[tokenSet.background]) {
-    throw new Error(`Role "${role}" references unknown token "${tokenSet.background}" (theme: ${theme})`);
-  }
-  if (!pairings.some((pairing) => pairing.fg === tokenSet.foreground && pairing.bg === tokenSet.background)) {
-    throw new Error(`Role "${role}" does not reference an approved semantic pairing`);
-  }
+
+  const matchedNames = new Set(matches.map(({ name }) => name));
+  const relatedPairings = pairings
+    .filter(({ fg, bg }) => matchedNames.has(fg) || matchedNames.has(bg))
+    .map(({ fg, bg, minRatio }) => ({
+      foreground: { name: fg, value: tokens[fg] },
+      background: { name: bg, value: tokens[bg] },
+      minRatio,
+    }));
 
   return {
-    role,
     theme,
-    foreground: tokenSet.foreground,
-    background: tokenSet.background,
+    query: { token: token ?? null, role: role ?? null },
+    matchedRole,
+    tokens: matches,
+    relatedPairings,
     source: getSource(),
   };
 }
